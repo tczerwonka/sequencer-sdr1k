@@ -1,10 +1,31 @@
-// SDR1000 sequencer
+// SDR sequencer for microwave transverters
+// Originally targeted to the SDR-1000 and now adding FlexWire support
+
+
 
 
 #include "pindefs.h"
+#include <Wire.h>
+#include <LiquidCrystal.h>
+
+//SainSmart LCD Keypad Shield v1.0
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+
+
 
 void setup() {
-  // put your setup code here, to run once:
+
+  //i2c specific stuff
+  Wire.begin(0x4c);       //0x4C is the xvtr interface
+  Wire.onReceive(receiveEvent);
+  
+
+  //LCD stuff
+  lcd.begin(16,2);
+  lcd.print("hello world");
+
+  //SDR-1000-specific pins
   pinMode(CONTROL1, INPUT_PULLUP);
   pinMode(CONTROL2, INPUT_PULLUP);
   pinMode(CONTROL3, INPUT_PULLUP);
@@ -59,4 +80,18 @@ void loop() {
    
   delay(1000);
 
+}
+
+
+// function that executes whenever data is received from master
+// this function is registered as an event, see setup()
+void receiveEvent(int howMany)
+{
+  while(1 < Wire.available()) // loop through all but the last
+  {
+    char c = Wire.read(); // receive byte as a character
+    lcd.print(c);         // print the character
+  }
+  int x = Wire.read();    // receive byte as an integer
+  lcd.println(x);         // print the integer
 }
