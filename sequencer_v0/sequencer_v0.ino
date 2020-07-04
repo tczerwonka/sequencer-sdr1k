@@ -18,7 +18,7 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 void setup() {
 
   //i2c specific stuff
-  Wire.begin(0x4c);       //0x4C is the xvtr interface
+  Wire.begin(0x26);       //0x4C - 8 bit, 0x26 i2c 8 bit
   Wire.onReceive(receiveEvent);
 
 
@@ -35,14 +35,85 @@ void setup() {
   pinMode(CONTROL6, INPUT_PULLUP);
   pinMode(PTT_ACTIVE, INPUT_PULLUP);
 
+  pinMode(IO0_0, INPUT);
+  pinMode(IO0_1, INPUT);
+  pinMode(IO0_2, INPUT);
+  pinMode(IO0_3, INPUT);
+  pinMode(IO0_4, INPUT);
+  pinMode(IO0_5, INPUT);
+  pinMode(IO0_6, INPUT);
+  pinMode(IO0_7, INPUT);
+  pinMode(IO1_0, INPUT);
+  pinMode(IO1_1, INPUT);
+  pinMode(IO1_2, INPUT);
+  pinMode(IO1_3, INPUT);
+  pinMode(IO1_4, INPUT);
+  pinMode(IO1_5, INPUT);
+  pinMode(IO1_6, INPUT);
+  pinMode(IO1_7, INPUT);
+
   Serial.begin(9600);
+    int val;
+
 }
 
 
 
 void loop() {
 
+  int val;
 
+	val = digitalRead(IO0_0);
+	Serial.print(val);
+
+    val = digitalRead(IO0_1);
+  Serial.print(val);
+
+    val = digitalRead(IO0_2);
+  Serial.print(val);
+
+    val = digitalRead(IO0_3);
+  Serial.print(val);
+
+    val = digitalRead(IO0_4);
+  Serial.print(val);
+
+    val = digitalRead(IO0_5);
+  Serial.print(val);
+
+      val = digitalRead(IO0_6);
+  Serial.print(val);
+
+    val = digitalRead(IO0_7);
+  Serial.print(val);
+
+  Serial.print(" ");
+
+    val = digitalRead(IO1_0);
+  Serial.print(val);
+
+    val = digitalRead(IO1_1);
+  Serial.print(val);
+
+    val = digitalRead(IO1_2);
+  Serial.print(val);
+
+    val = digitalRead(IO1_3);
+  Serial.print(val);
+
+    val = digitalRead(IO1_4);
+  Serial.print(val);
+
+    val = digitalRead(IO1_5);
+  Serial.print(val);
+
+      val = digitalRead(IO1_6);
+  Serial.print(val);
+
+    val = digitalRead(IO1_7);
+  Serial.print(val);
+
+  Serial.println();
 
 }
 
