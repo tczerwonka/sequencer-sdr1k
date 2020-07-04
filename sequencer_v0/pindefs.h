@@ -12,22 +12,26 @@
 #define CONTROL6 43
 #define PTT_ACTIVE 41
 
-#define IO0_0	22
-#define IO0_1	24
-#define IO0_2	26
-#define IO0_3	28
-#define IO0_4	30
-#define IO0_5	32	
-#define IO0_6	34
-#define IO0_7	36
+#define IO0_0	36
+#define IO0_1	34
+#define IO0_2	32
+#define IO0_3	30
+#define IO0_4	28
+#define IO0_5	26	
+#define IO0_6	24
+#define IO0_7	22
 
-#define IO1_0	38
-#define IO1_1	40
-#define IO1_2	42
-#define IO1_3	44
-#define IO1_4	46
-#define IO1_5	48	
-#define IO1_6	50
-#define IO1_7	52
+#define IO1_0	52
+#define IO1_1	50
+#define IO1_2	48
+#define IO1_3	46
+#define IO1_4	44
+#define IO1_5	42
+#define IO1_6	40
+#define IO1_7	38
+
+uint8_t PCA9555_pins = 8;
+uint8_t PCA9555_pins_0[] = {IO0_0, IO0_1, IO0_2, IO0_3, IO0_4, IO0_5, IO0_6, IO0_7};
+uint8_t PCA9555_pins_1[] = {IO1_0, IO1_1, IO1_2, IO1_3, IO1_4, IO1_5, IO1_6, IO1_7};
 
 #endif
