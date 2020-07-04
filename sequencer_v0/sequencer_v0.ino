@@ -12,8 +12,12 @@
 //SainSmart LCD Keypad Shield v1.0
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
+uint8_t PCA9555_0;
+uint8_t PCA9555_1;
 
-
+int frequency;
+char line0[17];
+char line1[17];
 
 void setup() {
 
@@ -24,7 +28,8 @@ void setup() {
 
   //LCD stuff
   lcd.begin(16, 2);
-  lcd.print("hello world");
+  lcd.print("Sequencer V0");
+
 
   //SDR-1000-specific pins
   pinMode(CONTROL1, INPUT_PULLUP);
@@ -53,7 +58,6 @@ void setup() {
   pinMode(IO1_7, INPUT);
 
   Serial.begin(9600);
-    int val;
 
 }
 
@@ -61,61 +65,115 @@ void setup() {
 
 void loop() {
 
-  int val;
+  for (int i = 0; i < PCA9555_pins; i++) {
+    bitWrite(PCA9555_0, i, digitalRead(PCA9555_pins_0[i]));
+  }
+  for (int i = 0; i < PCA9555_pins; i++) {
+    bitWrite(PCA9555_1, i, digitalRead(PCA9555_pins_1[i]));
+  }
 
-	val = digitalRead(IO0_0);
-	Serial.print(val);
+  //Serial.print("PCA9555_0: ");
+  //Serial.print(PCA9555_0);
 
-    val = digitalRead(IO0_1);
-  Serial.print(val);
+  //Serial.print(" PCA9555_1: ");
+  //Serial.println(PCA9555_1);
+  //Serial.println();
 
-    val = digitalRead(IO0_2);
-  Serial.print(val);
 
-    val = digitalRead(IO0_3);
-  Serial.print(val);
+  //low bits
+  if (PCA9555_1 == 0) {
 
-    val = digitalRead(IO0_4);
-  Serial.print(val);
+    //UCB 2
+    if (PCA9555_0 == 0) {
+      if (frequency != 50) {
+        frequency = 50;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("HF-PASSTHRU");
+      } //if freq
+    } // if HF
 
-    val = digitalRead(IO0_5);
-  Serial.print(val);
+    //UCB 3
+    if (PCA9555_0 == 4) {
+      if (frequency != 144) {
+        frequency = 144;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("2M");
+      } //if freq
+    } // if 144
 
-      val = digitalRead(IO0_6);
-  Serial.print(val);
+    //UCB 4
+    if (PCA9555_0 == 16) {
+      if (frequency != 222) {
+        frequency = 222;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("222");
+      } // if freq
+    } // if 222
 
-    val = digitalRead(IO0_7);
-  Serial.print(val);
+    //UCB 5
+    if (PCA9555_0 == 32) {
+      if (frequency != 432) {
+        frequency = 432;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("432");
+      } // if freq
+    } // if 432
 
-  Serial.print(" ");
+    //UCB 6
+    if (PCA9555_0 == 64) {
+      if (frequency != 902) {
+        frequency = 902;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("902");
+      } // if freq
+    } // if 902
 
-    val = digitalRead(IO1_0);
-  Serial.print(val);
+    //UCB 7
+    if (PCA9555_0 == 128) {
+      if (frequency != 1296) {
+        frequency = 1296;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("1296");
+      } // if freq
+    } // if 1296
+    
+  }
 
-    val = digitalRead(IO1_1);
-  Serial.print(val);
+  if (PCA9555_0 == 0) {  
 
-    val = digitalRead(IO1_2);
-  Serial.print(val);
+    //UCB 8
+    if (PCA9555_1 == 1) {
+      if (frequency != 2304) {
+        frequency = 2304;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("2304");
+      } // if freq
+    } // if 2304
 
-    val = digitalRead(IO1_3);
-  Serial.print(val);
+    //UCB 9
+    if (PCA9555_1 == 2) {
+      if (frequency != 3456) {
+        frequency = 3456;
+        lcd.setCursor(0, 0);
+        lcd.clear();
+        lcd.print("3456");
+      } // if freq
+    } // if 3456
+    
+  }
 
-    val = digitalRead(IO1_4);
-  Serial.print(val);
 
-    val = digitalRead(IO1_5);
-  Serial.print(val);
 
-      val = digitalRead(IO1_6);
-  Serial.print(val);
-
-    val = digitalRead(IO1_7);
-  Serial.print(val);
-
-  Serial.println();
 
 }
+
 
 
 void sdr1k() {
