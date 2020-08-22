@@ -2,6 +2,7 @@
 
 #ifndef _PINDEFS_H_
 #define _PINDEFS_H_
+#include <stdint.h>
 
 //SDR1000 control pins
 //for legacy reference
