@@ -19,26 +19,31 @@ int frequency;
 char line0[17];
 char line1[17];
 
+int rf_relay_selected = 0;
+int pwr_relay_selected = 0;
+
+int debug = 0;
+
 void setup() {
 
   //i2c specific stuff
-  Wire.begin(0x26);       //0x4C - 8 bit, 0x26 i2c 8 bit
-  Wire.onReceive(receiveEvent);
+  //Wire.begin(0x26);       //0x4C - 8 bit, 0x26 i2c 8 bit
+  //Wire.onReceive(receiveEvent);
 
 
   //LCD stuff
   lcd.begin(16, 2);
-  lcd.print("Sequencer V0");
+  lcd.print("Sequencer V0.1");
 
 
   //SDR-1000-specific pins
-  pinMode(CONTROL1, INPUT_PULLUP);
-  pinMode(CONTROL2, INPUT_PULLUP);
-  pinMode(CONTROL3, INPUT_PULLUP);
-  pinMode(CONTROL4, INPUT_PULLUP);
-  pinMode(CONTROL5, INPUT_PULLUP);
-  pinMode(CONTROL6, INPUT_PULLUP);
-  pinMode(PTT_ACTIVE, INPUT_PULLUP);
+  //pinMode(CONTROL1, INPUT_PULLUP);
+  //pinMode(CONTROL2, INPUT_PULLUP);
+  //pinMode(CONTROL3, INPUT_PULLUP);
+  //pinMode(CONTROL4, INPUT_PULLUP);
+  //pinMode(CONTROL5, INPUT_PULLUP);
+  //pinMode(CONTROL6, INPUT_PULLUP);
+  //pinMode(PTT_ACTIVE, INPUT_PULLUP);
 
   pinMode(IO0_0, INPUT);
   pinMode(IO0_1, INPUT);
@@ -57,6 +62,24 @@ void setup() {
   pinMode(IO1_6, INPUT);
   pinMode(IO1_7, INPUT);
 
+  pinMode(RF1A, OUTPUT);
+  pinMode(RF2A, OUTPUT);
+  pinMode(RF3A, OUTPUT);
+  pinMode(RF4A, OUTPUT);
+  pinMode(RF5A, OUTPUT);
+  pinMode(RF6A, OUTPUT);
+  pinMode(RF7A, OUTPUT);
+  pinMode(RF8A, OUTPUT);
+
+  pinMode(DC12RY1, OUTPUT);
+  pinMode(DC12RY2, OUTPUT);
+  pinMode(DC12RY3, OUTPUT);
+  pinMode(DC12RY4, OUTPUT);
+  pinMode(DC12RY5, OUTPUT);
+  pinMode(DC12RY6, OUTPUT);
+  pinMode(DC12RY7, OUTPUT);
+  pinMode(DC12RY8, OUTPUT);
+
   Serial.begin(9600);
 
 }
@@ -65,6 +88,9 @@ void setup() {
 
 void loop() {
 
+
+
+
   for (int i = 0; i < PCA9555_pins; i++) {
     bitWrite(PCA9555_0, i, digitalRead(PCA9555_pins_0[i]));
   }
@@ -72,12 +98,14 @@ void loop() {
     bitWrite(PCA9555_1, i, digitalRead(PCA9555_pins_1[i]));
   }
 
-  //Serial.print("PCA9555_0: ");
-  //Serial.print(PCA9555_0);
+  if (debug) {
+    Serial.print("PCA9555_0: ");
+    Serial.print(PCA9555_0);
 
-  //Serial.print(" PCA9555_1: ");
-  //Serial.println(PCA9555_1);
-  //Serial.println();
+    Serial.print(" PCA9555_1: ");
+    Serial.println(PCA9555_1);
+    Serial.println();
+  }
 
 
   //low bits
@@ -90,19 +118,23 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("HF-PASSTHRU");
+        select_rf(0);
       } //if freq
     } // if HF
 
+    //144MHz -- select RF1A direct out to separate transverter
     //UCB 3
-    if (PCA9555_0 == 4) {
+    if (PCA9555_0 == 8) {
       if (frequency != 144) {
         frequency = 144;
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("2M");
+        select_rf(RF1A);
       } //if freq
     } // if 144
 
+    //222MHz -- select RF2A direct out to separate transverter
     //UCB 4
     if (PCA9555_0 == 16) {
       if (frequency != 222) {
@@ -110,9 +142,11 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("222");
+        select_rf(RF2A);
       } // if freq
     } // if 222
 
+    //432MHz -- select RF4A direct to the internal transverter
     //UCB 5
     if (PCA9555_0 == 32) {
       if (frequency != 432) {
@@ -120,9 +154,11 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("432");
+        select_rf(RF4A);
       } // if freq
     } // if 432
 
+    //902MHz -- select RF3 -- internal 144MHz transverter
     //UCB 6
     if (PCA9555_0 == 64) {
       if (frequency != 902) {
@@ -130,9 +166,12 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("902");
+        //RF4A is the internal 144MHz transverter
+        select_rf(RF3A);
       } // if freq
     } // if 902
 
+    //1296MHz -- select RF4 -- internal 144MHz transverter
     //UCB 7
     if (PCA9555_0 == 128) {
       if (frequency != 1296) {
@@ -140,13 +179,16 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("1296");
+        //RF4A is the internal 144MHz transverter
+        select_rf(RF3A);
       } // if freq
     } // if 1296
-    
+
   }
 
-  if (PCA9555_0 == 0) {  
+  if (PCA9555_0 == 0) {
 
+    //2304MHz -- select RF4 internatl 144MHz
     //UCB 8
     if (PCA9555_1 == 1) {
       if (frequency != 2304) {
@@ -154,9 +196,12 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("2304");
+        //RF4A is the internal 144MHz transverter
+        select_rf(RF4A);
       } // if freq
     } // if 2304
 
+    //2304MHz -- select RF4 internatl 144MHz
     //UCB 9
     if (PCA9555_1 == 2) {
       if (frequency != 3456) {
@@ -164,14 +209,44 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("3456");
+        //RF4A is the internal 144MHz transverter
+        select_rf(RF4A);
       } // if freq
     } // if 3456
-    
+
+  } //if PCA9555_0 == 0
+
+
+
+
+}
+
+
+
+//select a power relay -- 0 turns them all off
+void select_pwr(int relay) {
+  digitalWrite(pwr_relay_selected, LOW);
+  if (relay == 0) {
+    //50MHz -- turn the last selected relay off
+    digitalWrite(pwr_relay_selected, LOW);
+  } else {
+    digitalWrite(relay, HIGH);
   }
+  pwr_relay_selected = relay;
+}
 
 
 
-
+//select an RF relay -- 0 turns them all off
+void select_rf(int relay) {
+  digitalWrite(rf_relay_selected, LOW);
+  if (relay == 0) {
+    //50MHz -- turn the last selected relay off
+    digitalWrite(rf_relay_selected, LOW);
+  } else {
+    digitalWrite(relay, HIGH);
+  }
+  rf_relay_selected = relay;
 }
 
 
