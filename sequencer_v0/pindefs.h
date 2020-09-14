@@ -26,6 +26,17 @@
 #define RF7A	35
 #define RF8A	37
 
+//microphone PTT pin
+#define PTT_MIC 69  //A15 is 69
+#define XV_EN   39
+#define PTT_MAIN  41
+#define F144MHZ   43
+#define F222MHZ  45
+#define F432MHZ  47
+#define F902MHZ  49
+#define F1296MHZ  51
+#define F2304MHZ  53
+
 //12V relay control pins
 #define DC12RY1	39
 #define DC12RY2	41
