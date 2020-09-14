@@ -82,6 +82,8 @@ void setup() {
   pinMode(DC12RY6, OUTPUT);
   pinMode(DC12RY7, OUTPUT);
   pinMode(DC12RY8, OUTPUT);
+  pinMode(DC5RY1, OUTPUT);
+  pinMode(DC5RY2, OUTPUT);
 
   Serial.begin(9600);
 
@@ -278,7 +280,6 @@ void select_rf(int relay) {
 //  check to see if PTT is enabled -- then key the pad and the transverter
 ////////////////////////////////////////////////////////////////////////////////
 void check_ptt() {
-  Serial.print(digitalRead(PTT_MIC));
   if (digitalRead(PTT_MIC) == LOW) {
     digitalWrite(PTT_MAIN, HIGH);
     delay(100);
@@ -297,11 +298,16 @@ void check_ptt() {
     if (frequency == 1296) {
       select_tx(F1296MHZ);
     }
+    delay(50);
+    digitalWrite(SDR_PTT_OUT, HIGH);
     lcd.setCursor(0, 1);
     lcd.print("TX");
+    
   } else {
     lcd.setCursor(0, 1);
     lcd.print("RX");
+    digitalWrite(SDR_PTT_OUT, LOW);
+    delay(50);
     digitalWrite(PTT_MAIN, LOW);
     select_tx(0);
   }
