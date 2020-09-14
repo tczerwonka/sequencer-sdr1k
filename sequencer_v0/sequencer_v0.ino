@@ -20,6 +20,7 @@ char line0[17];
 char line1[17];
 
 int rf_relay_selected = 0;
+int rf_secondary_relay_selected = 0;
 int pwr_relay_selected = 0;
 
 int debug = 0;
@@ -44,6 +45,8 @@ void setup() {
   //pinMode(CONTROL5, INPUT_PULLUP);
   //pinMode(CONTROL6, INPUT_PULLUP);
   //pinMode(PTT_ACTIVE, INPUT_PULLUP);
+
+  pinMode(PTT_MIC, INPUT_PULLUP);
 
   pinMode(IO0_0, INPUT);
   pinMode(IO0_1, INPUT);
@@ -85,10 +88,11 @@ void setup() {
 }
 
 
-
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 void loop() {
 
-
+  check_ptt();
 
 
   for (int i = 0; i < PCA9555_pins; i++) {
@@ -118,7 +122,9 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("HF-PASSTHRU");
+        transvert_enable(0);
         select_rf(0);
+        select_rf_secondary(0);
       } //if freq
     } // if HF
 
@@ -130,7 +136,9 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("2M");
+        transvert_enable(1);
         select_rf(RF1A);
+        select_rf_secondary(0);
       } //if freq
     } // if 144
 
@@ -142,7 +150,9 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("222");
+        transvert_enable(1);
         select_rf(RF2A);
+        select_rf_secondary(0);
       } // if freq
     } // if 222
 
@@ -154,11 +164,14 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("432");
+        transvert_enable(1);
         select_rf(RF4A);
+        select_rf_secondary(0);
       } // if freq
     } // if 432
 
     //902MHz -- select RF3 -- internal 144MHz transverter
+    //          select RF5 -- 902 output
     //UCB 6
     if (PCA9555_0 == 64) {
       if (frequency != 902) {
@@ -166,8 +179,10 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("902");
+        transvert_enable(1);
         //RF4A is the internal 144MHz transverter
         select_rf(RF3A);
+        select_rf_secondary(RF5A);
       } // if freq
     } // if 902
 
@@ -179,8 +194,10 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("1296");
+        transvert_enable(1);
         //RF4A is the internal 144MHz transverter
         select_rf(RF3A);
+        select_rf_secondary(RF6A);
       } // if freq
     } // if 1296
 
@@ -196,12 +213,14 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("2304");
+        transvert_enable(1);
         //RF4A is the internal 144MHz transverter
         select_rf(RF4A);
+        select_rf_secondary(RF7A);
       } // if freq
     } // if 2304
 
-    //2304MHz -- select RF4 internatl 144MHz
+    //3456MHz -- select RF4 internatl 144MHz
     //UCB 9
     if (PCA9555_1 == 2) {
       if (frequency != 3456) {
@@ -209,22 +228,22 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.clear();
         lcd.print("3456");
+        transvert_enable(1);
         //RF4A is the internal 144MHz transverter
         select_rf(RF4A);
+        select_rf_secondary(RF8A);
       } // if freq
     } // if 3456
 
   } //if PCA9555_0 == 0
-
-
-
-
 }
 
 
-
-//select a power relay -- 0 turns them all off
-void select_pwr(int relay) {
+////////////////////////////////////////////////////////////////////////////////
+// select_tx
+//    select a transmit power relay -- 0 turns them all off
+////////////////////////////////////////////////////////////////////////////////
+void select_tx(int relay) {
   digitalWrite(pwr_relay_selected, LOW);
   if (relay == 0) {
     //50MHz -- turn the last selected relay off
@@ -237,7 +256,10 @@ void select_pwr(int relay) {
 
 
 
-//select an RF relay -- 0 turns them all off
+////////////////////////////////////////////////////////////////////////////////
+// select_rf
+//  select an RF relay -- 0 turns them all off
+////////////////////////////////////////////////////////////////////////////////
 void select_rf(int relay) {
   digitalWrite(rf_relay_selected, LOW);
   if (relay == 0) {
@@ -249,6 +271,76 @@ void select_rf(int relay) {
   rf_relay_selected = relay;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// check_ptt
+//  check to see if PTT is enabled -- then key the pad and the transverter
+////////////////////////////////////////////////////////////////////////////////
+void check_ptt() {
+  Serial.print(digitalRead(PTT_MIC));
+  if (digitalRead(PTT_MIC) == LOW) {
+    digitalWrite(PTT_MAIN, HIGH);
+    delay(100);
+    if (frequency == 144) {
+      select_tx(F144MHZ);
+    }
+    if (frequency == 222) {
+      select_tx(F222MHZ);
+    }
+    if (frequency == 432) {
+      select_tx(F432MHZ);
+    }
+    if (frequency == 902) {
+      select_tx(F902MHZ);
+    }
+    if (frequency == 1296) {
+      select_tx(F1296MHZ);
+    }
+    lcd.setCursor(0, 1);
+    lcd.print("TX");
+  } else {
+    lcd.setCursor(0, 1);
+    lcd.print("RX");
+    digitalWrite(PTT_MAIN, LOW);
+    select_tx(0);
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// select_rf_secondary
+//  These are the secondary relays fed by the 144mhz intermediate transverter
+//  select an RF relay -- 0 turns them all off
+////////////////////////////////////////////////////////////////////////////////
+void select_rf_secondary(int relay) {
+  digitalWrite(rf_secondary_relay_selected, LOW);
+  if (relay == 0) {
+    //50MHz -- turn the last selected relay off
+    digitalWrite(rf_secondary_relay_selected, LOW);
+  } else {
+    digitalWrite(relay, HIGH);
+  }
+  rf_secondary_relay_selected = relay;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// transvert_enable
+//    enable the transverter -- off for HF, on for everything else
+////////////////////////////////////////////////////////////////////////////////
+void transvert_enable(int enable) {
+  if (enable == 1) {
+    digitalWrite(XV_EN, HIGH);
+    lcd.setCursor(10, 1);
+    lcd.print("XV_EN ");
+  } else {
+    lcd.setCursor(10, 1);
+    lcd.print("XV_OFF");
+    digitalWrite(XV_EN, LOW);
+  }
+}
 
 
 void sdr1k() {
