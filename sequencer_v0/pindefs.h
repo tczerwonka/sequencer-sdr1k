@@ -28,6 +28,8 @@
 
 //microphone PTT pin
 #define PTT_MIC 69  //A15 is 69
+#define SDR_PTT_OUT  53
+
 #define XV_EN   39
 #define PTT_MAIN  41
 #define F144MHZ   43
@@ -36,6 +38,7 @@
 #define F902MHZ  49
 #define F1296MHZ  51
 #define F2304MHZ  53
+#define F3456MHZ  55
 
 //12V relay control pins
 #define DC12RY1	39
@@ -46,7 +49,8 @@
 #define DC12RY6	49
 #define DC12RY7	51
 #define DC12RY8	53
-
+#define DC5RY1 68  //negative logic
+#define DC5RY2 67  //negative logic
 
 //PCA9555 pins
 #define IO0_0	36
