@@ -84,6 +84,9 @@ void setup() {
   pinMode(DC12RY8, OUTPUT);
   pinMode(DC5RY1, OUTPUT);
   pinMode(DC5RY2, OUTPUT);
+  
+  //logic on this backwards
+  digitalWrite(F2304MHZ, HIGH);
 
   Serial.begin(9600);
 
@@ -131,6 +134,11 @@ void loop() {
     } // if HF
 
     //144MHz -- select RF1A direct out to separate transverter
+    //realized that my 222 and 144 transverter have separate inputs
+    //not worth modifying a working transverter so the RF1A and RF2A become
+    //a split RX/TX for 222 as I can do 144 either with the onboard 144
+    //transverter or with my FT847 or add some relays in the future
+    //Also -- losing 3456MHz so forget about that band...
     //UCB 3
     if (PCA9555_0 == 8) {
       if (frequency != 144) {
@@ -139,7 +147,7 @@ void loop() {
         lcd.clear();
         lcd.print("2M");
         transvert_enable(1);
-        select_rf(RF1A);
+        select_rf(RF8A);
         select_rf_secondary(0);
       } //if freq
     } // if 144
@@ -153,7 +161,7 @@ void loop() {
         lcd.clear();
         lcd.print("222");
         transvert_enable(1);
-        select_rf(RF2A);
+        select_rf(RF1A);
         select_rf_secondary(0);
       } // if freq
     } // if 222
@@ -287,6 +295,7 @@ void check_ptt() {
       select_tx(F144MHZ);
     }
     if (frequency == 222) {
+      select_rf(RF2A);
       select_tx(F222MHZ);
     }
     if (frequency == 432) {
@@ -297,6 +306,9 @@ void check_ptt() {
     }
     if (frequency == 1296) {
       select_tx(F1296MHZ);
+    }
+    if (frequency == 2304) {
+      select_tx(F2304MHZ);
     }
     delay(50);
     digitalWrite(SDR_PTT_OUT, HIGH);
@@ -310,7 +322,13 @@ void check_ptt() {
     delay(50);
     digitalWrite(PTT_MAIN, LOW);
     select_tx(0);
-  }
+    
+    //if 222, select the RX relay
+    if (frequency == 222) {
+      select_rf(RF1A);
+    }
+    
+  } //else
 }
 
 

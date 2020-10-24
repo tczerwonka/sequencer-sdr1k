@@ -37,7 +37,7 @@
 #define F432MHZ  47
 #define F902MHZ  49
 #define F1296MHZ  51
-#define F2304MHZ  53
+#define F2304MHZ  67
 #define F3456MHZ  55
 
 //12V relay control pins
