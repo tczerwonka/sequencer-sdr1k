@@ -17,6 +17,7 @@
 //RF relay control pins
 //1-4 are 28MHz
 //5-8 are 144MHz
+//1B/2B are 144LO and 432LO internal transverters
 #define RF1A	23
 #define RF2A	25
 #define RF3A	27
@@ -25,11 +26,15 @@
 #define RF6A	33
 #define RF7A	35
 #define RF8A	37
+#define RF1B    66
+#define RF2B    65
 
 //microphone PTT pin
 #define PTT_MIC 69  //A15 is 69
 #define SDR_PTT_OUT  53
 
+
+//right-hand side PTT relays
 #define XV_EN   39
 #define PTT_MAIN  41
 #define F144MHZ   43
@@ -40,6 +45,7 @@
 #define F2304MHZ  67
 #define F3456MHZ  55
 
+
 //12V relay control pins
 #define DC12RY1	39
 #define DC12RY2	41
@@ -49,8 +55,9 @@
 #define DC12RY6	49
 #define DC12RY7	51
 #define DC12RY8	53
-#define DC5RY1 68  //negative logic
-#define DC5RY2 67  //negative logic
+#define DC5RY1 68  
+#define DC5RY2 67 
+
 
 //PCA9555 pins
 #define IO0_0	36
