@@ -23,7 +23,8 @@ int rf_relay_selected = 0;
 int rf_secondary_relay_selected = 0;
 int pwr_relay_selected = 0;
 
-int debug = 0;
+int debug = 1;
+int debug_pca9555 = 0;
 
 void setup() {
 
@@ -73,6 +74,8 @@ void setup() {
   pinMode(RF6A, OUTPUT);
   pinMode(RF7A, OUTPUT);
   pinMode(RF8A, OUTPUT);
+  pinMode(RF1B, OUTPUT);
+  pinMode(RF2B, OUTPUT);
 
   pinMode(DC12RY1, OUTPUT);
   pinMode(DC12RY2, OUTPUT);
@@ -84,9 +87,7 @@ void setup() {
   pinMode(DC12RY8, OUTPUT);
   pinMode(DC5RY1, OUTPUT);
   pinMode(DC5RY2, OUTPUT);
-  
-  //logic on this backwards
-  digitalWrite(F2304MHZ, HIGH);
+ 
 
   Serial.begin(9600);
 
@@ -107,7 +108,7 @@ void loop() {
     bitWrite(PCA9555_1, i, digitalRead(PCA9555_pins_1[i]));
   }
 
-  if (debug) {
+  if (debug_pca9555) {
     Serial.print("PCA9555_0: ");
     Serial.print(PCA9555_0);
 
@@ -136,8 +137,8 @@ void loop() {
     //144MHz -- select RF1A direct out to separate transverter
     //realized that my 222 and 144 transverter have separate inputs
     //not worth modifying a working transverter so the RF1A and RF2A become
-    //a split RX/TX for 222 as I can do 144 either with the onboard 144
-    //transverter or with my FT847 or add some relays in the future
+    //a split RX/TX for 222 
+    //added another relay for 144 single so RF3A/RF4A are split for 144
     //Also -- losing 3456MHz so forget about that band...
     //UCB 3
     if (PCA9555_0 == 8) {
@@ -147,7 +148,7 @@ void loop() {
         lcd.clear();
         lcd.print("2M");
         transvert_enable(1);
-        select_rf(RF8A);
+        select_rf(RF3A);
         select_rf_secondary(0);
       } //if freq
     } // if 144
@@ -175,12 +176,12 @@ void loop() {
         lcd.clear();
         lcd.print("432");
         transvert_enable(1);
-        select_rf(RF4A);
+        select_rf(RF2B);
         select_rf_secondary(0);
       } // if freq
     } // if 432
 
-    //902MHz -- select RF3 -- internal 144MHz transverter
+    //902MHz -- select RF1B -- internal 144MHz transverter
     //          select RF5 -- 902 output
     //UCB 6
     if (PCA9555_0 == 64) {
@@ -191,7 +192,7 @@ void loop() {
         lcd.print("902");
         transvert_enable(1);
         //RF4A is the internal 144MHz transverter
-        select_rf(RF3A);
+        select_rf(RF1B);
         select_rf_secondary(RF5A);
       } // if freq
     } // if 902
@@ -206,7 +207,7 @@ void loop() {
         lcd.print("1296");
         transvert_enable(1);
         //RF4A is the internal 144MHz transverter
-        select_rf(RF3A);
+        select_rf(RF1B);
         select_rf_secondary(RF6A);
       } // if freq
     } // if 1296
@@ -215,7 +216,7 @@ void loop() {
 
   if (PCA9555_0 == 0) {
 
-    //2304MHz -- select RF4 internatl 144MHz
+    //2304MHz -- select RF4 internal 144MHz
     //UCB 8
     if (PCA9555_1 == 1) {
       if (frequency != 2304) {
@@ -225,7 +226,7 @@ void loop() {
         lcd.print("2304");
         transvert_enable(1);
         //RF4A is the internal 144MHz transverter
-        select_rf(RF4A);
+        select_rf(RF1B);
         select_rf_secondary(RF7A);
       } // if freq
     } // if 2304
@@ -240,7 +241,7 @@ void loop() {
         lcd.print("3456");
         transvert_enable(1);
         //RF4A is the internal 144MHz transverter
-        select_rf(RF4A);
+        select_rf(RF1B);
         select_rf_secondary(RF8A);
       } // if freq
     } // if 3456
@@ -258,7 +259,13 @@ void select_tx(int relay) {
   if (relay == 0) {
     //50MHz -- turn the last selected relay off
     digitalWrite(pwr_relay_selected, LOW);
+    Serial.print("select_tx 50mhz low ");
+    Serial.println(pwr_relay_selected);
   } else {
+    if (debug) {
+      Serial.print("select_tx HIGH ");
+      Serial.println(relay);
+    }
     digitalWrite(relay, HIGH);
   }
   pwr_relay_selected = relay;
@@ -289,9 +296,15 @@ void select_rf(int relay) {
 ////////////////////////////////////////////////////////////////////////////////
 void check_ptt() {
   if (digitalRead(PTT_MIC) == LOW) {
+    if (debug) {
+      Serial.println("PTT_MIC is low");
+    }
+    //PTT_MAIN is the board with the attenuator, it should go first
     digitalWrite(PTT_MAIN, HIGH);
     delay(100);
+    
     if (frequency == 144) {
+      select_rf(RF4A);
       select_tx(F144MHZ);
     }
     if (frequency == 222) {
@@ -326,6 +339,10 @@ void check_ptt() {
     //if 222, select the RX relay
     if (frequency == 222) {
       select_rf(RF1A);
+    }
+    //if 144, select the RX relay
+   if (frequency == 144) {
+     select_rf(RF3A);
     }
     
   } //else
