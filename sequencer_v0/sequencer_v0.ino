@@ -177,7 +177,7 @@ void loop() {
         lcd.print("432");
         transvert_enable(1);
         select_rf(RF2B);
-        select_rf_secondary(0);
+        select_rf_secondary(RF5A);
       } // if freq
     } // if 432
 
@@ -193,7 +193,7 @@ void loop() {
         transvert_enable(1);
         //RF4A is the internal 144MHz transverter
         select_rf(RF1B);
-        select_rf_secondary(RF5A);
+        select_rf_secondary(RF8A);
       } // if freq
     } // if 902
 
@@ -359,8 +359,10 @@ void select_rf_secondary(int relay) {
   if (relay == 0) {
     //50MHz -- turn the last selected relay off
     digitalWrite(rf_secondary_relay_selected, LOW);
+    digitalWrite(RF5A, LOW);
   } else {
     digitalWrite(relay, HIGH);
+    digitalWrite(RF5A, HIGH);
   }
   rf_secondary_relay_selected = relay;
 }
