@@ -30,8 +30,15 @@
 #define RF2B    65
 
 //microphone PTT pin
-#define PTT_MIC 69  //A15 is 69
+#define PTT_MIC   69 //A15 is 69
 #define SDR_PTT_OUT  53
+
+//local vs remote and step
+#define LOCAL  63  //A9 is 63
+#define STEP    64  //A10 is 64
+
+#define LOCAL_CONTROL  0
+#define REMOTE_CONTROL  1
 
 
 //right-hand side PTT relays
@@ -77,6 +84,8 @@
 #define IO1_5	42
 #define IO1_6	40
 #define IO1_7	38
+
+
 
 uint8_t PCA9555_pins = 8;
 uint8_t PCA9555_pins_0[] = {IO0_0, IO0_1, IO0_2, IO0_3, IO0_4, IO0_5, IO0_6, IO0_7};

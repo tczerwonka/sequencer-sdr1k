@@ -6,6 +6,7 @@
 
 #include "pindefs.h"
 #include "translation.h"
+#include "other.h"
 #include <Wire.h>
 #include <LiquidCrystal.h>
 
@@ -25,6 +26,9 @@ int pwr_relay_selected = 0;
 
 int debug = 1;
 int debug_pca9555 = 0;
+
+int control = LOCAL_CONTROL;
+int control_band = MTHRU;
 
 void setup() {
 
@@ -48,6 +52,8 @@ void setup() {
   //pinMode(PTT_ACTIVE, INPUT_PULLUP);
 
   pinMode(PTT_MIC, INPUT_PULLUP);
+  pinMode(LOCAL, INPUT_PULLUP);
+  pinMode(STEP, INPUT_PULLUP);
 
   pinMode(IO0_0, INPUT);
   pinMode(IO0_1, INPUT);
@@ -87,7 +93,7 @@ void setup() {
   pinMode(DC12RY8, OUTPUT);
   pinMode(DC5RY1, OUTPUT);
   pinMode(DC5RY2, OUTPUT);
- 
+
 
   Serial.begin(9600);
 
@@ -99,6 +105,7 @@ void setup() {
 void loop() {
 
   check_ptt();
+  check_local_remote();
 
 
   for (int i = 0; i < PCA9555_pins; i++) {
@@ -119,10 +126,10 @@ void loop() {
 
 
   //low bits
-  if (PCA9555_1 == 0) {
+  if (PCA9555_1 == 0 || control == LOCAL_CONTROL) {
 
     //UCB 2
-    if (PCA9555_0 == 0) {
+    if (PCA9555_0 == 0 || control_band == MTHRU) {
       if (frequency != 50) {
         frequency = 50;
         lcd.setCursor(0, 0);
@@ -137,11 +144,11 @@ void loop() {
     //144MHz -- select RF1A direct out to separate transverter
     //realized that my 222 and 144 transverter have separate inputs
     //not worth modifying a working transverter so the RF1A and RF2A become
-    //a split RX/TX for 222 
+    //a split RX/TX for 222
     //added another relay for 144 single so RF3A/RF4A are split for 144
     //Also -- losing 3456MHz so forget about that band...
     //UCB 3
-    if (PCA9555_0 == 8) {
+    if (PCA9555_0 == 8 || control_band == M2) {
       if (frequency != 144) {
         frequency = 144;
         lcd.setCursor(0, 0);
@@ -155,7 +162,7 @@ void loop() {
 
     //222MHz -- select RF2A direct out to separate transverter
     //UCB 4
-    if (PCA9555_0 == 16) {
+    if (PCA9555_0 == 16 || control_band == M222) {
       if (frequency != 222) {
         frequency = 222;
         lcd.setCursor(0, 0);
@@ -169,7 +176,7 @@ void loop() {
 
     //432MHz -- select RF4A direct to the internal transverter
     //UCB 5
-    if (PCA9555_0 == 32) {
+    if (PCA9555_0 == 32 || control_band == M432) {
       if (frequency != 432) {
         frequency = 432;
         lcd.setCursor(0, 0);
@@ -184,7 +191,7 @@ void loop() {
     //902MHz -- select RF1B -- internal 144MHz transverter
     //          select RF5 -- 902 output
     //UCB 6
-    if (PCA9555_0 == 64) {
+    if (PCA9555_0 == 64 || control_band == M902) {
       if (frequency != 902) {
         frequency = 902;
         lcd.setCursor(0, 0);
@@ -199,7 +206,7 @@ void loop() {
 
     //1296MHz -- select RF4 -- internal 144MHz transverter
     //UCB 7
-    if (PCA9555_0 == 128) {
+    if (PCA9555_0 == 128 || control_band == M1296) {
       if (frequency != 1296) {
         frequency = 1296;
         lcd.setCursor(0, 0);
@@ -214,11 +221,11 @@ void loop() {
 
   }
 
-  if (PCA9555_0 == 0) {
+  if (PCA9555_0 == 0 || control == LOCAL_CONTROL) {
 
     //2304MHz -- select RF4 internal 144MHz
     //UCB 8
-    if (PCA9555_1 == 1) {
+    if (PCA9555_1 == 1 || control_band == M2304) {
       if (frequency != 2304) {
         frequency = 2304;
         lcd.setCursor(0, 0);
@@ -233,7 +240,7 @@ void loop() {
 
     //3456MHz -- select RF4 internatl 144MHz
     //UCB 9
-    if (PCA9555_1 == 2) {
+    if (PCA9555_1 == 2 || control_band == M3456) {
       if (frequency != 3456) {
         frequency = 3456;
         lcd.setCursor(0, 0);
@@ -302,7 +309,7 @@ void check_ptt() {
     //PTT_MAIN is the board with the attenuator, it should go first
     digitalWrite(PTT_MAIN, HIGH);
     delay(100);
-    
+
     if (frequency == 144) {
       select_rf(RF4A);
       select_tx(F144MHZ);
@@ -327,7 +334,7 @@ void check_ptt() {
     digitalWrite(SDR_PTT_OUT, HIGH);
     lcd.setCursor(0, 1);
     lcd.print("TX");
-    
+
   } else {
     lcd.setCursor(0, 1);
     lcd.print("RX");
@@ -335,16 +342,16 @@ void check_ptt() {
     delay(50);
     digitalWrite(PTT_MAIN, LOW);
     select_tx(0);
-    
+
     //if 222, select the RX relay
     if (frequency == 222) {
       select_rf(RF1A);
     }
     //if 144, select the RX relay
-   if (frequency == 144) {
-     select_rf(RF3A);
+    if (frequency == 144) {
+      select_rf(RF3A);
     }
-    
+
   } //else
 }
 
@@ -443,3 +450,38 @@ void receiveEvent(int howMany)
   Serial.println(x);
 
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// check_local_remote
+//  check to see if the local / remote switch is in the remote position
+////////////////////////////////////////////////////////////////////////////////
+void check_local_remote() {
+
+  if (digitalRead(LOCAL) == HIGH) {
+    control = LOCAL_CONTROL;
+    lcd.setCursor(3, 1);
+    lcd.print("LOCAL ");
+
+    if (digitalRead(STEP) == LOW) {
+      Serial.println(control_band);
+      if (control_band < MMAX) {
+        control_band++;
+      } else {
+        control_band = MTHRU;
+      }
+      //there's a bounce problem here -- hit it once you go forward three or four
+      //a delay kinda sucks but it's quick for now.
+      delay(250);
+    }
+
+  } else {
+    control = REMOTE_CONTROL;
+    control_band = 9999; //higher than MMAX so reset next time
+    lcd.setCursor(3, 1);
+    lcd.print("REMOTE");
+  }
+
+} //void check_local_remote
+
+
