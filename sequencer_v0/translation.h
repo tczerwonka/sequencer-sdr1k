@@ -4,6 +4,7 @@
 
 #ifndef TRANSLATION_H
 #define TRANSLATION_H
+#include <stdint.h>
 
 struct xlate_tbl {
     char band[9];
