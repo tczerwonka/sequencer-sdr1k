@@ -12,6 +12,13 @@
     <button id="connectButton">Connect</button><span id="statusBar">Disconnected</span><br />
     <input id="sendText" type="text" /><input id="sendButton" type="button" value="send" /><br />
     <textarea readonly id="receiveText" ></textarea>
+    <br />
+    <button id="powerButton">Power on/off</button>
+    <br />
+    <button id="8040MButton">80/40</button>
+    <button id="beamButton">20/15/10</button>
+    <button id="loadButton">Dummy Load</button>
+    <br />
     </div>
 <script type="text/javascript">
 /*
@@ -34,6 +41,10 @@ let sendButton = document.getElementById("sendButton");
 let receiveText = document.getElementById("receiveText");
 let connectButton = document.getElementById("connectButton");
 let statusBar = document.getElementById("statusBar");
+let powerButton = document.getElementById("powerButton");
+let 8040MButton = document.getElementById("8040MButton");
+let beamButton = document.getElementById("beamButton");
+let loadButton = document.getElementById("loadButton");
 
 //Couple the elements to the Events
 connectButton.addEventListener("click", clickConnect)
